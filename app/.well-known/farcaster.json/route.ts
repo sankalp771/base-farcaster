@@ -6,16 +6,16 @@ export async function GET() {
     // TODO: Add your own account association
     frame: {
       version: "1",
-      name: "Monad Farcaster MiniApp Template",
-      iconUrl: `${APP_URL}/images/icon.png`,
+      name: "Virus Eater Lab",
+      iconUrl: `${APP_URL}/images/virus-icon.png`, // We will need to make sure this exists or use a placeholder
       homeUrl: `${APP_URL}`,
-      imageUrl: `${APP_URL}/images/feed.png`,
+      imageUrl: `${APP_URL}/images/virus-preview.png`,
       screenshotUrls: [],
-      tags: ["monad", "farcaster", "miniapp", "template"],
-      primaryCategory: "developer-tools",
-      buttonTitle: "Launch Template",
+      tags: ["game", "farcaster", "virus", "strategy"],
+      primaryCategory: "gaming",
+      buttonTitle: "Enter Lab",
       splashImageUrl: `${APP_URL}/images/splash.png`,
-      splashBackgroundColor: "#ffffff",
+      splashBackgroundColor: "#022c22", // emerald-950
       webhookUrl: `${APP_URL}/api/webhook`,
     },
   };

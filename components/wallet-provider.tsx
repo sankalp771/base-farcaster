@@ -7,7 +7,7 @@ import { WagmiAdapter } from "@reown/appkit-adapter-wagmi";
 import { base } from "@reown/appkit/networks";
 import { cookieToInitialState, WagmiProvider, type Config } from "wagmi";
 import { farcasterMiniApp as miniAppConnector } from "@farcaster/miniapp-wagmi-connector";
-import { projectId, wagmiAdapter } from "@/config";
+import { projectId, wagmiAdapter, networks } from "@/config";
 import { APP_URL } from "@/lib/constants";
 
 // Create a Query Client for React Query
@@ -31,8 +31,8 @@ const metadata = {
 createAppKit({
   adapters: [wagmiAdapter],
   projectId,
-  networks: [base],
-  defaultNetwork: base,
+  networks,
+  defaultNetwork: networks[0],
   metadata,
   features: {
     analytics: true, // optional

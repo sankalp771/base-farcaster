@@ -17,13 +17,11 @@
 }
 
 body {
-  color: rgb(var(--foreground-rgb));
-  background: linear-gradient(
-      to bottom,
-      transparent,
-      rgb(var(--background-end-rgb))
-    )
-    rgb(var(--background-start-rgb));
+  color: #e2e8f0;
+  background-color: #020617; /* Slate 950 */
+  background-image: 
+    radial-gradient(circle at 50% 50%, #064e3b 0%, #020617 100%);
+  min-height: 100vh;
 }
 
 @layer utilities {
