@@ -2,20 +2,17 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { useAppKit } from '@reown/appkit/react';
-import { useAccount, useWriteContract, useReadContract } from 'wagmi';
-import { parseEther } from 'viem';
+import { useAccount } from 'wagmi';
 
 
 // --- Types ---
 
-type LogMessage = {
-  id: number;
-  text: string;
-  type: 'info' | 'danger' | 'success' | 'warning';
-  timestamp: string;
-};
+import { useSimulationEngine } from '@/hooks/useSimulationEngine';
+import { useOnChainEngine } from '@/hooks/useOnChainEngine';
+import { LogMessage } from '@/types/game';
 
 // --- Sub-components ---
+
 
 const VirusTank = ({ kills, status, attackActive }: { kills: number, status: 'STABLE' | 'UNSTABLE' | 'MUTATING', attackActive: boolean }) => {
   return (
@@ -145,115 +142,31 @@ const BattleLog = ({ logs }: { logs: LogMessage[] }) => {
 
 export default function VirusEaterLab() {
   const [videoEnded, setVideoEnded] = useState(false);
-  const [bots, setBots] = useState(1);
-  const [kills, setKills] = useState(1240);
-  const [money, setMoney] = useState(500);
-  const [virusStatus, setVirusStatus] = useState<'STABLE' | 'UNSTABLE' | 'MUTATING'>('STABLE');
-  const [logs, setLogs] = useState<LogMessage[]>([]);
-  const [attackVisual, setAttackVisual] = useState(false);
-
   const { open } = useAppKit();
   const { address, isConnected } = useAccount();
-  const { writeContract } = useWriteContract();
+
+  /* 
+   * DUAL ENGINE ARCHITECTURE
+   * - Simulation: Runs purely in browser memory.
+   * - OnChain: Connects to VirusLab.sol on Base.
+   */
+  const simEngine = useSimulationEngine(videoEnded && !isConnected); // Pause sim if connected
+  const chainEngine = useOnChainEngine();
+
+  // Select the active engine
+  const game = isConnected ? chainEngine : simEngine;
+
+  const {
+    bots,
+    kills,
+    money,
+    status: virusStatus,
+    logs,
+    attackVisual,
+    deployBot
+  } = game;
 
   const videoRef = useRef<HTMLVideoElement>(null);
-
-  // Helper to add logs
-  const addLog = (text: string, type: LogMessage['type'] = 'info') => {
-    const now = new Date();
-    const time = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}`;
-    setLogs(prev => [...prev.slice(-20), { id: Date.now(), text, type, timestamp: time }]);
-  };
-
-  // Game Loop
-  useEffect(() => {
-    if (!videoEnded) return;
-
-    const gameLoop = setInterval(() => {
-      // Base Income
-      if (bots > 0) {
-        setKills(prev => prev + (bots * Math.floor(Math.random() * 3 + 1)));
-        setMoney(prev => prev + (bots * 0.5));
-
-        // Random Attack Animation
-        if (Math.random() > 0.7) {
-          setAttackVisual(true);
-          setTimeout(() => setAttackVisual(false), 500);
-        }
-      }
-
-      // --- RANDOM EVENTS ---
-      const roll = Math.random();
-
-      // Event: Virus Mutation (Danger) - 10% Chance
-      if (roll < 0.10 && bots > 0) {
-        setVirusStatus('MUTATING');
-        addLog("⚠️ ANOMALY DETECTED: Virus strain mutating unstable!", 'warning');
-
-        // 50% chance the mutation kills a bot
-        setTimeout(() => {
-          if (Math.random() > 0.5) {
-            setBots(prev => Math.max(0, prev - 1));
-            addLog("💀 CRITICAL FAILURE: Agent unit 0x" + Math.floor(Math.random() * 1000).toString(16) + " disconnected.", 'danger');
-            addLog("Unknown entity bypassed firewall protocols.", 'danger');
-          } else {
-            addLog("🛡️ DEFENSE SUCCESS: Mutation contained.", 'success');
-          }
-          setVirusStatus('STABLE');
-        }, 3000);
-      }
-
-      // Event: Encrypted Signal (Flavor) - 5% Chance
-      else if (roll > 0.95) {
-        const messages = [
-          "Processing neural handshake...",
-          "Signal intercepted from Sector 7...",
-          "Downloading virus schematics...",
-          "Brute forcing private key...",
-          "Packet loss detected in rendering engine..."
-        ];
-        addLog(messages[Math.floor(Math.random() * messages.length)], 'info');
-      }
-
-    }, 2000); // Check every 2 seconds
-
-    return () => clearInterval(gameLoop);
-  }, [bots, videoEnded]);
-
-  const deployBot = async () => {
-    if (!isConnected) {
-      open();
-      return;
-    }
-
-    // Placeholder: If we had a contract, we would write to it here.
-    addLog("Initiating Neural Link with Blockchain...", "info");
-    /*
-    writeContract({
-      address: '0x...',
-      abi: [],
-      functionName: 'deployBot',
-      value: parseEther('0.001')
-    })
-    */
-
-    // Simulated Fallback
-    if (money >= 100) {
-      setMoney(prev => prev - 100);
-      setBots(prev => prev + 1);
-      addLog("Unit deployed. Syncing to network...", 'success');
-      setAttackVisual(true);
-      setTimeout(() => setAttackVisual(false), 500);
-    }
-  };
-
-  const removeBot = () => {
-    if (bots > 0) {
-      setMoney(prev => prev + 50);
-      setBots(prev => prev - 1);
-      addLog("Unit recalled to base station.", 'info');
-    }
-  };
 
   return (
     <main className="min-h-screen bg-emerald-950 text-white overflow-hidden font-sans selection:bg-neon-green selection:text-black">
