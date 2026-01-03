@@ -1,0 +1,93 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.20;
+
+contract VirusLab {
+    
+    // --- Configuration ---
+    uint256 public constant UNIT_PRICE = 0.0001 ether; // Cost to buy 1 bot
+    uint256 public constant REWARD_PER_SEC = 0.0000001 ether; // Passive Income Rate
+    uint256 public constant ATTACK_CHANCE = 15; // 15% Risk
+    
+    address public owner;
+    
+    struct Player {
+        uint256 units;            
+        uint256 lastClaimTime;    
+        uint256 unclaimedRewards; 
+    }
+    
+    mapping(address => Player) public players;
+    
+    event UnitDeployed(address indexed player, uint256 amount);
+    event RewardsClaimed(address indexed player, uint256 amount, bool attackOccurred);
+    event UnitLost(address indexed player, uint256 count);
+    event AnomalyDetected(address indexed player, string message); 
+
+    constructor() {
+        owner = msg.sender;
+    }
+
+    function deployUnit(uint256 _count) external payable {
+        uint256 cost = _count * UNIT_PRICE;
+        require(msg.value >= cost, "Insufficient ETH sent");
+        
+        _updateRewards(msg.sender);
+        players[msg.sender].units += _count;
+        
+        // 5% Dev Fee
+        payable(owner).transfer((msg.value * 5) / 100);
+        
+        emit UnitDeployed(msg.sender, _count);
+    }
+    
+    function recallOperation() external {
+        Player storage p = players[msg.sender];
+        require(p.units > 0 || p.unclaimedRewards > 0, "No active agents");
+        
+        _updateRewards(msg.sender);
+        
+        uint256 payout = p.unclaimedRewards;
+        p.unclaimedRewards = 0; 
+        
+        if (payout == 0) return;
+        
+        // RNG (Pseudo-random for demo)
+        uint256 seed = uint256(keccak256(abi.encodePacked(block.timestamp, msg.sender, block.prevrandao)));
+        bool attack = (seed % 100) < ATTACK_CHANCE;
+        
+        if (attack) {
+            if (p.units > 0) {
+                p.units -= 1; // Kill 1 bot
+                emit UnitLost(msg.sender, 1);
+            }
+            payout = payout / 2; // Slash rewards
+            emit AnomalyDetected(msg.sender, "CRITICAL FAILURE: Signal Intercepted.");
+        } 
+        
+        if (address(this).balance < payout) payout = address(this).balance;
+        payable(msg.sender).transfer(payout);
+        emit RewardsClaimed(msg.sender, payout, attack);
+    }
+
+    function _updateRewards(address _user) internal {
+        Player storage p = players[_user];
+        if (p.units == 0) {
+            p.lastClaimTime = block.timestamp;
+            return;
+        }
+        uint256 timeDelta = block.timestamp - p.lastClaimTime;
+        if (timeDelta > 0) {
+            p.unclaimedRewards += timeDelta * p.units * REWARD_PER_SEC;
+            p.lastClaimTime = block.timestamp;
+        }
+    }
+    
+    function getPlayerState(address _user) external view returns (uint256 units, uint256 pendingRewards, uint256 potentialYield) {
+        Player memory p = players[_user];
+        uint256 timeDelta = (p.lastClaimTime == 0) ? 0 : (block.timestamp - p.lastClaimTime);
+        uint256 activeYield = (p.units > 0) ? (timeDelta * p.units * REWARD_PER_SEC) : 0;
+        return (p.units, p.unclaimedRewards + activeYield, REWARD_PER_SEC * p.units);
+    }
+    
+    receive() external payable {}
+}

@@ -251,14 +251,14 @@ export default function VirusEaterLab() {
               <div className="mt-8 space-y-3">
                 <button
                   onClick={deployBot}
-                  disabled={money < 100}
+                  disabled={!isConnected && money < 100}
                   className={`w-full py-4 rounded-xl font-bold font-mono tracking-wider uppercase transition-all
-                                ${money >= 100
+                                ${isConnected || money >= 100
                       ? 'bg-emerald-500 hover:bg-emerald-400 text-emerald-950 shadow-[0_0_20px_rgba(16,185,129,0.4)]'
                       : 'bg-emerald-900/20 text-emerald-700 cursor-not-allowed border border-emerald-900'}
                             `}
                 >
-                  Deploy Bot ($100)
+                  {isConnected ? 'DEPLOY BOT (0.0001 ETH)' : 'Deploy Bot ($100)'}
                 </button>
               </div>
             </div>

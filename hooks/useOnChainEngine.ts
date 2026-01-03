@@ -5,7 +5,7 @@ import { GameEngine, LogMessage, VirusStatus } from '@/types/game';
 import VirusLabABI from '@/abis/VirusLab.json';
 
 // REPLACE WITH REAL DEPLOYED ADDRESS
-const CONTRACT_ADDRESS = '0x0000000000000000000000000000000000000000';
+const CONTRACT_ADDRESS = '0x5be5de9607d74dd1129146a2353f8b69961c178a';
 
 export function useOnChainEngine(): GameEngine {
     const { address } = useAccount();
@@ -117,7 +117,7 @@ export function useOnChainEngine(): GameEngine {
             value: parseEther('0.0001') // Matches contract constant
         }, {
             onSuccess: () => addLog("Tx Sent: Deploying Agent...", 'info'),
-            onError: (e) => addLog(`Tx Failed: ${e.message.slice(0, 20)}...`, 'danger')
+            onError: (e) => addLog(`Tx Failed: ${e.message.slice(0, 50)}...`, 'danger')
         });
     };
 
