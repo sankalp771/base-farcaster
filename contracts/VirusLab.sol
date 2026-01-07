@@ -28,14 +28,24 @@ contract VirusLab {
     }
 
     function deployUnit(uint256 _count) external payable {
+        require(_count > 0, "Cannot deploy zero units");
         uint256 cost = _count * UNIT_PRICE;
         require(msg.value >= cost, "Insufficient ETH sent");
         
+        Player storage p = players[msg.sender];
+
         _updateRewards(msg.sender);
-        players[msg.sender].units += _count;
+
+        // FIX: Initialize timestamp if this is their first bot
+        if (p.units == 0) {
+            p.lastClaimTime = block.timestamp;
+        }
+
+        p.units += _count;
         
-        // 5% Dev Fee
-        payable(owner).transfer((msg.value * 5) / 100);
+        // 5% Dev Fee (Using call for safety)
+        (bool success, ) = owner.call{value: (msg.value * 5) / 100}("");
+        require(success, "Dev fee failed");
         
         emit UnitDeployed(msg.sender, _count);
     }
@@ -65,7 +75,11 @@ contract VirusLab {
         } 
         
         if (address(this).balance < payout) payout = address(this).balance;
-        payable(msg.sender).transfer(payout);
+        
+        // Payout to user
+        (bool success, ) = msg.sender.call{value: payout}("");
+        require(success, "Payout failed");
+        
         emit RewardsClaimed(msg.sender, payout, attack);
     }
 
@@ -89,5 +103,17 @@ contract VirusLab {
         return (p.units, p.unclaimedRewards + activeYield, REWARD_PER_SEC * p.units);
     }
     
+    // EMERGENCY WITHDRAW (For Owner Only)
+    function withdraw() external {
+        require(msg.sender == owner, "Only owner");
+        (bool success, ) = owner.call{value: address(this).balance}("");
+        require(success, "Withdraw failed");
+    }
+
+    // Check balance helper
+    function getContractBalance() external view returns (uint256) {
+        return address(this).balance;
+    }
+
     receive() external payable {}
 }

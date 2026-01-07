@@ -5,7 +5,7 @@ import { GameEngine, LogMessage, VirusStatus } from '@/types/game';
 import VirusLabABI from '@/abis/VirusLab.json';
 
 // REPLACE WITH REAL DEPLOYED ADDRESS
-const CONTRACT_ADDRESS = '0x5be5de9607d74dd1129146a2353f8b69961c178a';
+const CONTRACT_ADDRESS = '0x0f5729cde0d347fb24c9230d7680ee39ef880c24';
 
 export function useOnChainEngine(): GameEngine {
     const { address } = useAccount();

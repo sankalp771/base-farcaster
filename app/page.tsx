@@ -1,8 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from 'react';
-import { useAppKit } from '@reown/appkit/react';
-import { useAccount } from 'wagmi';
+import { useAccount, useConnect, useDisconnect } from 'wagmi';
 
 
 // --- Types ---
@@ -142,7 +141,21 @@ const BattleLog = ({ logs }: { logs: LogMessage[] }) => {
 
 export default function VirusEaterLab() {
   const [videoEnded, setVideoEnded] = useState(false);
-  const { open } = useAppKit();
+
+  // --- Replaced Reown AppKit with Native Wagmi ---
+  const { connect, connectors } = useConnect();
+  const { disconnect } = useDisconnect();
+  // Find MetaMask (injected)
+  const injectedConnector = connectors.find((c) => c.id === 'injected');
+
+  const handleConnect = () => {
+    if (injectedConnector) {
+      connect({ connector: injectedConnector });
+    } else {
+      alert("MetaMask not found!");
+    }
+  };
+
   const { address, isConnected } = useAccount();
 
   /* 
@@ -228,16 +241,16 @@ export default function VirusEaterLab() {
                         {address?.slice(0, 6)}...{address?.slice(-4)}
                       </span>
                     </div>
-                    <button onClick={() => open()} className="text-[10px] bg-black/50 hover:bg-black/80 px-2 py-1 rounded text-emerald-500/80 uppercase tracking-widest border border-emerald-500/20 transition-all">
+                    <button onClick={() => disconnect()} className="text-[10px] bg-black/50 hover:bg-black/80 px-2 py-1 rounded text-emerald-500/80 uppercase tracking-widest border border-emerald-500/20 transition-all">
                       Disconnect
                     </button>
                   </div>
                 ) : (
                   <button
-                    onClick={() => open()}
+                    onClick={handleConnect}
                     className="w-full py-2 bg-emerald-500/10 hover:bg-emerald-500/20 border border-neon-green/50 text-neon-green rounded-lg font-mono text-xs uppercase tracking-widest transition-all animate-pulse"
                   >
-                    [ Connect Wallet ]
+                    [ Connect MetaMask ]
                   </button>
                 )}
               </div>
