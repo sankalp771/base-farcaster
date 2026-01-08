@@ -2,6 +2,8 @@
 
 The template demonstrates all Mini App capabilities and lets you easily modify it, so you can build Mini Apps on Base Sepolia testnet.
 
+On Chain Game Development! 
+
 ## Cloning the Template
 
 You can use the following command to clone the Mini App template to your local machine:
