@@ -1,401 +1,130 @@
-# Base Sepolia Farcaster MiniApp Template verified for Base Hyperthon (https://hyperthon.org) 2025 by Prmsnls (https://permissionless.net)
+# 🦠 Virus Eater Lab
+### **On-Chain AI Defense Simulation on Base Sepolia**
 
-The template demonstrates all Mini App capabilities and lets you easily modify it, so you can build Mini Apps on Base Sepolia testnet.
+![Virus Lab Interface](https://github.com/user-attachments/assets/placeholder-image) 
+*(Replace with actual screenshot)*
 
-On Chain Game Development! 
+> *"The System is under attack. The Cortex is destabilizing. Only autonomous Hunter Bots can purge the viral strain."*
 
-## Cloning the Template
+**Virus Eater Lab** is a fully functional **On-Chain Game (OCG)** built as a Farcaster Frame/MiniApp. It simulates a biological defense scenario where players deploy "Hunter Bots" to fight an evolving digital virus.
 
-You can use the following command to clone the Mini App template to your local machine:
+Players pay **ETH** to deploy units, earn yield (passive income) from the protocol, and risk their units in "Recall Operations" to claim their earnings.
 
-```
-git clone https://github.com/harshshukla9/base-farcaster
-```
+---
 
-### Install the dependencies
+## ⚡ Key Features
 
-```
-pnpm install
-```
+*   **Dual-Engine Architecture**:
+    *   **Simulation Mode**: Runs purely in-browser for free users (visuals only).
+    *   **On-Chain Mode**: Connects to **Base Sepolia** via Smart Contract for real economic stakes.
+*   **Real-Time Economics**:
+    *   **Entry Cost**: 0.0001 ETH per Bot.
+    *   **Yield**: Bots generate `0.0000001 ETH/sec` (simulated yield).
+    *   **Risk**: Recalling rewards has a **15% chance** of unit death (Burn Mechanism).
+*   **High-End UX**:
+    *   Glassmosphism UI with "Neon Emerald" aesthetic.
+    *   Reactive animations (mutating virus, laser attacks).
+    *   **Direct Wagmi Glue**: No clunky modals. Direct Ledger/MetaMask injection for speed.
 
-### Copy `.env.example` over to `.env.local`
+---
 
+## 🛠️ Technical Stack
+
+This project was built during the **Base Hyperthon 2025**. It departs from standard templates to offer a high-performance, lightweight capability.
+
+*   **Frontend**: Next.js 14, TailwindCSS (Neon/Cyberpunk Theme).
+*   **Blockchain Interaction**: `wagmi` + `viem` (No heavy providers).
+*   **Smart Contract**: Solidity (`VirusLab.sol`) deployed on Base Sepolia.
+*   **Package Manager**: **Bun** (Lighting fast installs/scripts).
+
+### Smart Contract Verified Address
+**Base Sepolia**: [`0x0f5729cde0d347fb24c9230d7680ee39ef880c24`](https://sepolia.basescan.org/address/0x0f5729cde0d347fb24c9230d7680ee39ef880c24)
+
+---
+
+## 🚀 Getting Started
+
+We use **Bun** for everything. Make sure you have it installed.
+
+### 1. Clone & Install
 ```bash
-cp .env.example .env.local
+git clone https://github.com/yourusername/virus-eater-lab.git
+cd virus-eater-lab
+bun install
 ```
 
-### Run the template
-
+### 2. Configure Environment
+Rename `.env.example` to `.env`:
 ```bash
-pnpm dev
+NEXT_PUBLIC_PROJECT_ID=your_reown_project_id
+PRIVATE_KEY=your_testnet_wallet_private_key # Only needed for deployment
 ```
 
-### View the App in Warpcast Embed tool
-
-Warpcast has a neat [Embed tool](https://warpcast.com/~/developers/mini-apps/embed) that you can use to inspect the Mini App before you publish it.
-
-Unfortunately, the embed tool can only work with remote URL. Inputting a localhost URL does not work.
-
-As a workaround, you may make the local app accessible remotely using a tool like `cloudflared` or `ngrok`. In this guide we will use `cloudflared`.
-
-#### Install Cloudflared
-
+### 3. Run Locally
 ```bash
-brew install cloudflared
+bun dev
 ```
+Open `http://localhost:3000`.
 
-For more installation options see the [official docs](https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/downloads/).
+---
 
-#### Expose localhost
+## ⚔️ How to Play
 
-Run the following command in your terminal:
+1.  **Connect Wallet**: Use MetaMask or any injected wallet. Switch to **Base Sepolia**.
+2.  **Deploy Bot**: Click `[ DEPLOY BOT ]`.
+    *   Cost: **0.0001 ETH**.
+    *   Transaction confirms on-chain → Bot Count increases.
+3.  **Watch It Grow**: Your bot passively "mines" rewards in the background contract state.
+4.  **Recall (Claim)**: Click `[ RECALL AGENTS ]` (feature coming in UI v2, contract supports it).
+    *   **Success**: You get your accumulated ETH.
+    *   **Fail (15%)**: The Virus intercepts the signal. You lose 50% rewards and 1 Bot dies.
 
-```bash
-cloudflared tunnel --url http://localhost:3000
-```
+---
 
-Be sure to specify the correct port for your local server.
+## 📜 Smart Contract Logic
 
-#### Set `NEXT_PUBLIC_URL` environment variable in `.env.local` file
+The game logic is enforced immutably on-chain.
 
-```bash
-NEXT_PUBLIC_URL=<url-from-cloudflared-or-ngrok>
-```
+**`contracts/VirusLab.sol`**:
+```solidity
+function deployUnit(uint256 _count) external payable {
+    require(msg.value >= _count * UNIT_PRICE, "Insufficient Funds");
+    // ... Updates player state & timestamp
+}
 
-#### Use the provided url
-
-`cloudflared` will generate a random subdomain and print it in the terminal for you to use. Any traffic to this URL will get sent to your local server.
-
-Enter the provided URL in the [Warpcast Embed tool](https://warpcast.com/~/developers/mini-apps/embed).
-
-![embed-tool](https://docs.base.org/img/guides/farcaster-miniapp/1.png)
-
-Let's investigate the various components of the template.
-
-## Customizing the Mini App Embed
-
-Mini App Embed is how the Mini App shows up in the feed or in a chat conversation when the URL of the app is shared.
-
-The Mini App Embed looks like this:
-
-![embed-preview](https://docs.base.org/img/guides/farcaster-miniapp/2.png)
-
-You can customize this by editing the file `app/page.tsx`:
-
-```js
-...
-
-const appUrl = env.NEXT_PUBLIC_URL;
-
-const frame = {
-  version: "next",
-  imageUrl: `${appUrl}/images/feed.png`, // Embed image URL (3:2 image ratio)
-  button: {
-    title: "Template", // Text on the embed button
-    action: {
-      type: "launch_frame",
-      name: "Base Sepolia Farcaster MiniApp Template",
-      url: appUrl, // URL that is opened when the embed button is tapped or clicked.
-      splashImageUrl: `${appUrl}/images/splash.png`,
-      splashBackgroundColor: "#0052FF",
-    },
-  },
-};
-
-...
-```
-
-You can either edit the URLs for the images or replace the images in `public/images` folder in the template.
-
-Once you are happy with the changes, click `Refetch` in the Embed tool to get the latest configuration.
-
-> [!NOTE]
-> If you are developing locally, ensure that your Next.js app is running locally and the cloudflare tunnel is open. 
-
-## Customizing the Splash Screen
-
-Upon opening the Mini App, the first thing the user will see is the Splash screen:
-
-![splash-screen](https://docs.base.org/img/guides/farcaster-miniapp/3.png)
-
-You can edit the `app/page.tsx` file to customize the Splash screen.
-
-```js
-...
-
-const appUrl = env.NEXT_PUBLIC_URL;
-
-const frame = {
-  version: "next",
-  imageUrl: `${appUrl}/images/feed.png`,
-  button: {
-    title: "Launch Template",
-    action: {
-      type: "launch_frame",
-      name: "Base Sepolia Farcaster MiniApp Template",
-      url: appUrl,
-      splashImageUrl: `${appUrl}/images/splash.png`, // App icon in the splash screen (200px * 200px)
-      splashBackgroundColor: "#0052FF", // Splash screen background color (Base blue)
-    },
-  },
-};
-
-...
-```
-
-For `splashImageUrl`, you can either change the URL or replace the image in `public/images` folder in the template.
-
-## Modifying the Mini App
-
-Upon opening the template Mini App, you should see a screen like this:
-
-
-
-The code for this screen is in the `components/pages/app.tsx` file:
-
-```tsx
-export default function Home() {
-  const { context } = useMiniAppContext();
-  return (
-    // SafeAreaContainer component makes sure that the app margins are rendered properly depending on which client is being used.
-    <SafeAreaContainer insets={context?.client.safeAreaInsets}>
-      {/* You replace the Demo component with your home component */}
-      <Demo />
-    </SafeAreaContainer>
-  )
+function recallOperation() external {
+    // ... Calculates rewards based on time difference
+    // ... Runs pseudo-RNG for 15% kill chance
 }
 ```
 
-You can remove or edit the code in this file to build your Mini App.
+---
 
-### Accessing User Context
+## 📦 Zero-Config Deployment
 
+We hate complex tools. We wrote a custom TypeScript deployment script that uses `viem` and `solc` directly. No Hardhat required.
 
-Your Mini App receives various information about the user, including `username`, `fid`, `displayName`, `pfpUrl` and other fields.
-
-The template provides a helpful hook `useMiniAppContext` that you can use to access these fields:
-
-```js
-export function User() {
-    const { context } = useMiniAppContext();
-    return <p>{context.user.username}</p>
-}
-```
-
-The template also provide an example of the same in `components/Home/User.tsx` file.
-
-You can learn more about Context [here](https://miniapps.farcaster.xyz/docs/sdk/context).
-
-### Performing App Actions
-
-![composeCast](https://docs.base.org/img/guides/farcaster-miniapp/composeCast.gif)
-
-Mini Apps have the capability to perform native actions that enhance the user experience!
-
-Actions like:
-
-- `addFrame`: Allows the user to save (bookmark) the app in a dedicated section
-- `composeCast`: Allows the MiniApp to prompt the user to cast with prefilled text and media
-- `viewProfile`: Presents a profile of a Farcaster user in a client native UI
-
-
-
-The template provides an easy way to access the actions via the `useMiniAppContext` hook!
-
-```js
-const { actions } = useMiniAppContext();
-```
-
-An example for the same can be found in `components/Home/FarcasterActions.tsx` file.
-
-### Prompting Wallet Actions
-
-
-
-Every user of Warpcast has access to various wallet integrations with Base Sepolia testnet support.
-
-**Mini Apps can prompt the user to perform onchain actions on Base Sepolia**!
-
-The template provides an example for the same in `components/Home/WalletActions.tsx` file.
-
-```js
-export function WalletActions() {
-    ...
-
-    async function sendTransactionHandler() {
-        sendTransaction({
-            to: "0x7f748f154B6D180D35fA12460C7E4C631e28A9d7",
-            value: parseEther("0.001"), // Small amount for testnet
-        });
-    }
-
-    ...
-}
-```
-
-> [!WARNING]
-> The wallet supports multiple networks. It is recommended that you ensure that Base Sepolia is connected before prompting wallet actions.
-
-You can use viem's `switchChain` or equivalent to prompt a chain switch.
-
-```js
-// Switching to Base Sepolia
-switchChain({ chainId: 84532 });
-```
-
-The template has an example for the same in the `components/Home/WalletActions.tsx` file.
-
-## Base Sepolia Network Configuration
-
-This template is configured to work with Base Sepolia testnet. Here are the network details:
-
-- **Chain ID**: 84532
-- **Network Name**: Base Sepolia
-- **RPC URL**: https://sepolia.base.org
-- **Block Explorer**: https://sepolia.basescan.org
-- **Testnet Faucet**: https://www.coinbase.com/faucets/base-ethereum-goerli-faucet
-
-### Getting Testnet ETH
-
-To test wallet functionality, you'll need testnet ETH on Base Sepolia:
-
-1. Visit the [Base Sepolia Faucet](https://www.coinbase.com/faucets/base-ethereum-goerli-faucet)
-2. Connect your wallet
-3. Request testnet ETH
-4. Wait for the transaction to complete
-
-## Package Scripts
-
-The template includes several useful pnpm scripts:
-
+**To Deploy Your Own Version:**
 ```bash
-# Development server
-pnpm dev
-
-# Build for production
-pnpm build
-
-# Start production server
-pnpm start
-
-# Lint code
-pnpm lint
-
-# Type checking
-pnpm type-check
+bun scripts/deploy_viem.ts
 ```
+*   Compiles Solidity on the fly.
+*   Deploys to Base Sepolia using `.env` key.
+*   Outputs the new Contract Address.
 
-## Modifying the `farcaster.json` file
+---
 
-When publishing the Mini App you will need to have a `farcaster.json` file that follows the specification.
+## 🔮 Farcaster Integration
 
-You can edit the `app/.well-known/farcaster.json/route.ts` file with your app details before publishing the app!
+This app is Farcaster-native. It includes a `/.well-known/farcaster.json` manifest (configured in `app/.well-known/farcaster.json/route.ts`).
 
-```ts
-...
+**To Test in Warpcast:**
+1.  Run `bun dev`.
+2.  Use `cloudflared` or `ngrok` to tunnel localhost.
+3.  Paste the URL into the [Warpcast Developer Playground](https://warpcast.com/~/developers/frames).
 
-const appUrl = process.env.NEXT_PUBLIC_URL;
-const farcasterConfig = {
-    // accountAssociation details are required to associated the published app with it's author
-    accountAssociation: {
-        "header": "",
-        "payload": "",
-        "signature": ""
-    },
-    frame: {
-        version: "1",
-        name: "Base Sepolia Farcaster MiniApp Template",
-        iconUrl: `${appUrl}/images/icon.png`, // Icon of the app in the app store
-        homeUrl: `${appUrl}`, // Default launch URL
-        imageUrl: `${appUrl}/images/feed.png`, // Default image to show if shared in a feed.
-        screenshotUrls: [], // Visual previews of the app
-        tags: ["base", "sepolia", "farcaster", "miniapp", "template", "testnet"], // Descriptive tags for search
-        primaryCategory: "developer-tools",
-        buttonTitle: "Launch Template",
-        splashImageUrl: `${appUrl}/images/splash.png`, // URL of image to show on loading screen.
-        splashBackgroundColor: "#0052FF", // Base blue color for loading screen.
-    }
-};
+---
 
-...
-```
-
-You can learn more about publishing the Mini App and other manifest properties [here](https://miniapps.farcaster.xyz/docs/guides/publishing).
-
-## Environment Variables
-
-Make sure to set up the following environment variables in your `.env.local` file:
-
-```bash
-NEXT_PUBLIC_URL=your-app-url
-NEXT_PUBLIC_CHAIN_ID=84532
-NEXT_PUBLIC_RPC_URL=https://sepolia.base.org
-```
-
-## Deployment
-
-The template is ready to be deployed to various platforms:
-
-### Vercel (Recommended)
-```bash
-pnpm dlx vercel
-```
-
-### Netlify
-```bash
-pnpm build
-# Upload the .next folder to Netlify
-```
-
-### Railway
-```bash
-# Connect your GitHub repository to Railway
-# Set environment variables in Railway dashboard
-```
-
-## Troubleshooting
-
-### Common Issues
-
-1. **Wallet not connecting to Base Sepolia**
-   - Ensure the chain ID is set to 84532
-   - Check that the RPC URL is correct
-   - Verify the user has testnet ETH
-
-2. **Mini App not loading in Warpcast**
-   - Verify the cloudflared tunnel is running
-   - Check that NEXT_PUBLIC_URL is set correctly
-   - Ensure the farcaster.json file is properly configured
-
-3. **Transaction failures**
-   - Check if the user has sufficient testnet ETH
-   - Verify the contract address is correct for Base Sepolia
-   - Ensure gas limits are appropriate for the network
-
-## Contributing
-
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add some amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
-## License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## Resources
-
-- [Farcaster Mini Apps Documentation](https://miniapps.farcaster.xyz/)
-- [Base Sepolia Network Info](https://docs.base.org/network-information)
-- [Base Developer Documentation](https://docs.base.org/)
-- [Warpcast Embed Tool](https://warpcast.com/~/developers/mini-apps/embed)
-- [Base Sepolia Faucet](https://www.coinbase.com/faucets/base-ethereum-goerli-faucet)
-
-## Conclusion
-
-In this guide, you explored Farcaster Mini Apps — the simplest way to create engaging, high-retention, and easily monetizable applications on Base Sepolia testnet!
-
-You also discovered the key capabilities of Mini Apps and how you can use this Base Sepolia Farcaster MiniApp Template to build your own decentralized applications with seamless wallet integration.
-
-For more details, check out the official Mini App documentation [here](https://miniapps.farcaster.xyz/) and Base documentation [here](https://docs.base.org/).
+### Credits
+Built with 💚 and excessive caffeine for the Base Ecosystem.
+*Theme: "Bio-Digital Horror"*
