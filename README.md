@@ -38,7 +38,8 @@ This project was built during the **Base Hyperthon 2025**. It departs from stand
 *   **Package Manager**: **Bun** (Lighting fast installs/scripts).
 
 ### Smart Contract Verified Address
-**Base Sepolia**: [`0x0f5729cde0d347fb24c9230d7680ee39ef880c24`](https://sepolia.basescan.org/address/0x0f5729cde0d347fb24c9230d7680ee39ef880c24)
+### Smart Contract Verified Address
+**Base Sepolia**: [`0x55f647642a3ac2c52aff8d7d43813f78183f0331`](https://sepolia.basescan.org/address/0x55f647642a3ac2c52aff8d7d43813f78183f0331)
 
 ---
 
@@ -71,13 +72,15 @@ Open `http://localhost:3000`.
 ## ⚔️ How to Play
 
 1.  **Connect Wallet**: Use MetaMask or any injected wallet. Switch to **Base Sepolia**.
-2.  **Deploy Bot**: Click `[ DEPLOY BOT ]`.
-    *   Cost: **0.0001 ETH**.
-    *   Transaction confirms on-chain → Bot Count increases.
-3.  **Watch It Grow**: Your bot passively "mines" rewards in the background contract state.
-4.  **Recall (Claim)**: Click `[ RECALL AGENTS ]` (feature coming in UI v2, contract supports it).
-    *   **Success**: You get your accumulated ETH.
-    *   **Fail (15%)**: The Virus intercepts the signal. You lose 50% rewards and 1 Bot dies.
+2.  **Deploy Bot**: Click `[ DEPLOY BOT ]`. Cost: **0.0001 ETH**.
+3.  **Watch It Grow**: Your bot passively "mines" rewards. The UI updates in real-time.
+4.  **Two Ways to Exit**:
+    *   **Option A: RECALL AGENTS (Harvest)**: Claims your accumulated rewards.
+        *   **Risk**: 15% chance a bot is destroyed by the Virus.
+        *   **Reward**: You keep 100% of the yield.
+    *   **Option B: LIQUIDATE ASSETS (Safe Exit)**: Sells all bots and claims everything.
+        *   **Risk**: None.
+        *   **Return**: 100% of Yield + 50% "Scrap Value" of your bots.
 
 ---
 

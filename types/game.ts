@@ -20,6 +20,7 @@ export interface GameState {
 export interface GameActions {
     deployBot: () => void;
     removeBot: () => void;
+    exitGame: () => void;
 }
 
 export interface GameEngine extends GameState, GameActions { }

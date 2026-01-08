@@ -14,6 +14,13 @@
     },
     {
         "inputs": [],
+        "name": "exitProtocol",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [],
         "name": "recallOperation",
         "outputs": [],
         "stateMutability": "nonpayable",

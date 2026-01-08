@@ -273,6 +273,25 @@ export default function VirusEaterLab() {
                 >
                   {isConnected ? 'DEPLOY BOT (0.0001 ETH)' : 'Deploy Bot ($100)'}
                 </button>
+
+                {bots > 0 && isConnected && (
+                  <div className="flex flex-col gap-2">
+                    <button
+                      onClick={() => game.removeBot()}
+                      className="w-full py-3 rounded-xl font-bold font-mono tracking-wider uppercase transition-all
+                                bg-yellow-500/10 hover:bg-yellow-500/20 text-yellow-500 border border-yellow-500/30 hover:shadow-[0_0_15px_rgba(234,179,8,0.2)] text-xs"
+                    >
+                      RECALL AGENTS [ CLAIM REWARDS ]
+                    </button>
+                    <button
+                      onClick={() => game.exitGame()}
+                      className="w-full py-3 rounded-xl font-bold font-mono tracking-wider uppercase transition-all
+                                bg-red-500/10 hover:bg-red-500/20 text-red-500 border border-red-500/30 hover:shadow-[0_0_15px_rgba(239,68,68,0.2)] text-xs"
+                    >
+                      LIQUIDATE ASSETS [ SELL ALL ]
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
           </div>

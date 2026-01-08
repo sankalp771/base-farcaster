@@ -83,6 +83,36 @@ contract VirusLab {
         emit RewardsClaimed(msg.sender, payout, attack);
     }
 
+    // NEW: Full Exit (Sell all bots for 50% scrap value)
+    function exitProtocol() external {
+        Player storage p = players[msg.sender];
+        require(p.units > 0, "No units to sell");
+
+        _updateRewards(msg.sender);
+
+        // 1. Calculate Rewards
+        uint256 rewardPayout = p.unclaimedRewards;
+        p.unclaimedRewards = 0;
+
+        // 2. Calculate Scrap Value (50% of original cost)
+        uint256 scrapValue = (p.units * UNIT_PRICE) / 2;
+        uint256 totalPayout = rewardPayout + scrapValue;
+
+        // 3. Reset Player
+        uint256 unitsSold = p.units;
+        p.units = 0;
+        
+        // 4. Safety Check
+        if (address(this).balance < totalPayout) totalPayout = address(this).balance;
+
+        // 5. Transfer
+        (bool success, ) = msg.sender.call{value: totalPayout}("");
+        require(success, "Exit failed");
+
+        emit UnitLost(msg.sender, unitsSold);
+        emit RewardsClaimed(msg.sender, totalPayout, false);
+    }
+
     function _updateRewards(address _user) internal {
         Player storage p = players[_user];
         if (p.units == 0) {

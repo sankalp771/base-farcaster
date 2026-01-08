@@ -5,7 +5,7 @@ import { GameEngine, LogMessage, VirusStatus } from '@/types/game';
 import VirusLabABI from '@/abis/VirusLab.json';
 
 // REPLACE WITH REAL DEPLOYED ADDRESS
-const CONTRACT_ADDRESS = '0x0f5729cde0d347fb24c9230d7680ee39ef880c24';
+const CONTRACT_ADDRESS = '0x55f647642a3ac2c52aff8d7d43813f78183f0331';
 
 export function useOnChainEngine(): GameEngine {
     const { address } = useAccount();
@@ -29,7 +29,8 @@ export function useOnChainEngine(): GameEngine {
         args: [address],
         query: {
             enabled: !!address,
-            refetchInterval: 2000, // Poll every 2s for real-time feel
+            refetchInterval: 2000,
+            queryKey: ['playerState', address, CONTRACT_ADDRESS], // Force reset on address change
         }
     });
 
@@ -134,14 +135,83 @@ export function useOnChainEngine(): GameEngine {
         });
     };
 
+    const exitGame = () => {
+        addLog("PROTOCOL OMEGA: Full Evacuation...", "warning");
+        writeContract({
+            address: CONTRACT_ADDRESS,
+            abi: VirusLabABI,
+            functionName: 'exitProtocol',
+            args: []
+        }, {
+            onSuccess: () => addLog("Tx Sent: Selling Assets...", 'info'),
+            onError: (e) => addLog(`Tx Failed: ${e.message.slice(0, 20)}...`, 'danger')
+        });
+    }
+
     // --- State Mapping ---
     // Mapping on-chain data to generic GameEngine Interface
     const units = playerState ? Number((playerState as any)[0]) : 0;
     const pendingRewardsWei = playerState ? (playerState as any)[1] : 0n;
+    const confirmedMoney = parseFloat(formatEther(pendingRewardsWei));
 
-    // We treat "Money" as the Pending Rewards in this view (or we could show wallet balance)
-    // Let's show Pending Rewards as "Money" to verify the loop
-    const moneyDisplay = parseFloat(formatEther(pendingRewardsWei));
+    // --- Visual Projection (The "Live Action" Effect) ---
+    const [visualMoney, setVisualMoney] = useState(confirmedMoney);
+
+    // Sync visual money with real money whenever blockchain updates
+    useEffect(() => {
+        setVisualMoney(confirmedMoney);
+    }, [confirmedMoney]);
+
+    // Tick up visually between blockchain polls
+    useEffect(() => {
+        if (units === 0) return;
+        const interval = setInterval(() => {
+            // Reward Rate: 0.0000001 ETH per sec per bot
+            // Per 100ms: 0.00000001
+            setVisualMoney(prev => prev + (units * 0.00000001));
+        }, 100);
+        return () => clearInterval(interval);
+    }, [units]);
+
+    // --- COSMETIC "HOLLYWOOD" DRAMA LOOP ---
+    // Makes the game feel alive without touching real assets
+    useEffect(() => {
+        if (units === 0) return;
+
+        const dramaLoop = setInterval(() => {
+            const roll = Math.random();
+
+            // 15% Chance: Visual Glitch / Warning (No real damage)
+            if (roll < 0.15) {
+                setVirusStatus('UNSTABLE');
+                // 50% chance of visual attack
+                if (Math.random() > 0.5) setAttackVisual(true);
+
+                setTimeout(() => {
+                    setVirusStatus('STABLE');
+                    setAttackVisual(false);
+                }, 2000);
+            }
+
+            // 5% Chance: Scary Log Message (Flavor)
+            if (roll > 0.95) {
+                const messages = [
+                    "Processing neural handshake...",
+                    "Signal intercepted from Sector 7...",
+                    "Brute forcing Private Key...",
+                    "Packet loss detected in rendering engine...",
+                    "⚠️ ANOMALY: Virus strain attempting mutation..."
+                ];
+                addLog(messages[Math.floor(Math.random() * messages.length)], 'warning');
+            }
+
+        }, 3000); // Check for drama every 3 seconds
+
+        return () => clearInterval(dramaLoop);
+    }, [units]);
+
+    // Use the visual value for the UI (fallback to 0 if NaN)
+    const moneyDisplay = visualMoney || 0;
 
     // Kills -> Just a flavor number based on units? Or maybe total yield? 
     // Let's make Kills = Units * 100 for now, or just 0.
@@ -155,6 +225,7 @@ export function useOnChainEngine(): GameEngine {
         logs,
         attackVisual,
         deployBot,
-        removeBot
+        removeBot,
+        exitGame
     };
 }

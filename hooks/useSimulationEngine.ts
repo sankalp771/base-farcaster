@@ -92,6 +92,12 @@ export function useSimulationEngine(videoEnded: boolean = true): GameEngine {
         }
     };
 
+    const exitGame = () => {
+        setBots(0);
+        setMoney(0);
+        addLog("SIMULATION TERMINATED. User disconnected.", 'danger');
+    };
+
     return {
         bots,
         kills,
@@ -100,6 +106,7 @@ export function useSimulationEngine(videoEnded: boolean = true): GameEngine {
         logs,
         attackVisual,
         deployBot,
-        removeBot
+        removeBot,
+        exitGame
     };
 }
